@@ -147,54 +147,24 @@ def send_twilio_message_to_contacts(message, contacts, category):
 
         for contact in contacts:
             try:
-                # Try WhatsApp first
-                whatsapp_to = (
-                    contact
-                    if contact.startswith("whatsapp:")
-                    else f"whatsapp:{contact}"
-                )
-
-                whatsapp_from = (
-                    TWILIO_PHONE_NUMBER
-                    if TWILIO_PHONE_NUMBER.startswith("whatsapp:")
-                    else f"whatsapp:{TWILIO_PHONE_NUMBER}"
-                )
-
                 msg = client.messages.create(
                     body=message,
-                    from_=whatsapp_from,
-                    to=whatsapp_to
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=contact
                 )
 
                 sent_messages.append({
                     "to": contact,
                     "sid": msg.sid,
                     "status": msg.status,
-                    "via": "whatsapp"
+                    "via": "sms"
                 })
 
-            except Exception as whatsapp_error:
-                # Fallback to normal SMS
-                try:
-                    msg = client.messages.create(
-                        body=message,
-                        from_=TWILIO_PHONE_NUMBER,
-                        to=contact
-                    )
-
-                    sent_messages.append({
-                        "to": contact,
-                        "sid": msg.sid,
-                        "status": msg.status,
-                        "via": "sms"
-                    })
-
-                except Exception as sms_error:
-                    failed_messages.append({
-                        "to": contact,
-                        "whatsapp_error": str(whatsapp_error),
-                        "sms_error": str(sms_error)
-                    })
+            except Exception as sms_error:
+                failed_messages.append({
+                    "to": contact,
+                    "sms_error": str(sms_error)
+                })
 
         return {
             "success": len(sent_messages) > 0,
@@ -211,7 +181,6 @@ def send_twilio_message_to_contacts(message, contacts, category):
             "category": category,
             "error": str(e)
         }
-
 
 def send_twilio_sms(message):
     return send_twilio_message_to_contacts(
