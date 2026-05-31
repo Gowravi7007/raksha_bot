@@ -3,7 +3,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template_string, request, redirect
 
-# Load .env locally
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,39 +13,44 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-# Add one or multiple emergency contacts separated by comma
-# Example: EMERGENCY_CONTACTS=+919876543210,+919123456789
+# Multiple contacts example:
+# EMERGENCY_CONTACTS=+919876543210,+919123456789
 EMERGENCY_CONTACTS = os.getenv("EMERGENCY_CONTACTS", os.getenv("EMERGENCY_CONTACT", ""))
-
-# Optional hospital / emergency numbers
-HOSPITAL_CONTACT = os.getenv("HOSPITAL_CONTACT", "")
-EMERGENCY_SERVICE_CONTACT = os.getenv("EMERGENCY_SERVICE_CONTACT", "")
 
 
 def get_contact_list():
-    contacts = []
+    if not EMERGENCY_CONTACTS:
+        return []
 
-    if EMERGENCY_CONTACTS:
-        contacts.extend([num.strip() for num in EMERGENCY_CONTACTS.split(",") if num.strip()])
+    return [num.strip() for num in EMERGENCY_CONTACTS.split(",") if num.strip()]
 
-    if HOSPITAL_CONTACT:
-        contacts.append(HOSPITAL_CONTACT.strip())
 
-    if EMERGENCY_SERVICE_CONTACT:
-        contacts.append(EMERGENCY_SERVICE_CONTACT.strip())
+def build_alert_message(data):
+    name = data.get("name", "User")
+    latitude = data.get("latitude", "12.9716")
+    longitude = data.get("longitude", "77.5946")
+    hospital = data.get("hospital", "City Hospital")
+    eta = data.get("eta", "8 min")
 
-    return contacts
+    maps_link = f"maps.google.com/?q={latitude},{longitude}"
+
+    # SHORT SMS for Twilio Trial account
+    # No emoji, no long text, no many new lines
+    message = (
+        f"RAKSHA ALERT: Accident detected for {name}. "
+        f"Loc: {maps_link}. "
+        f"Hosp: {hospital}. "
+        f"ETA: {eta}. Call now."
+    )
+
+    return message
 
 
 def send_twilio_sms(message):
-    """
-    Sends SMS alerts using Twilio.
-    Works only if Twilio credentials and phone numbers are configured correctly.
-    """
     if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_PHONE_NUMBER:
         return {
             "success": False,
-            "error": "Twilio credentials are missing. Add them in .env or Render Environment Variables."
+            "error": "Twilio credentials missing in environment variables."
         }
 
     contacts = get_contact_list()
@@ -54,32 +58,42 @@ def send_twilio_sms(message):
     if not contacts:
         return {
             "success": False,
-            "error": "No emergency contacts found. Add EMERGENCY_CONTACTS in .env or Render."
+            "error": "No emergency contacts found."
         }
 
     try:
         from twilio.rest import Client
-
         client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
         sent_messages = []
+        failed_messages = []
 
         for contact in contacts:
-            sms = client.messages.create(
-                body=message,
-                from_=TWILIO_PHONE_NUMBER,
-                to=contact
-            )
+            try:
+                sms = client.messages.create(
+                    body=message,
+                    from_=TWILIO_PHONE_NUMBER,
+                    to=contact
+                )
 
-            sent_messages.append({
-                "to": contact,
-                "sid": sms.sid,
-                "status": sms.status
-            })
+                sent_messages.append({
+                    "to": contact,
+                    "sid": sms.sid,
+                    "status": sms.status
+                })
+
+            except Exception as e:
+                failed_messages.append({
+                    "to": contact,
+                    "error": str(e)
+                })
 
         return {
-            "success": True,
+            "success": len(sent_messages) > 0,
             "sent_count": len(sent_messages),
-            "messages": sent_messages
+            "failed_count": len(failed_messages),
+            "messages": sent_messages,
+            "failed": failed_messages
         }
 
     except Exception as e:
@@ -87,33 +101,6 @@ def send_twilio_sms(message):
             "success": False,
             "error": str(e)
         }
-
-
-def build_alert_message(data):
-    name = data.get("name", "RAKSHA AI User")
-    latitude = data.get("latitude", "12.9716")
-    longitude = data.get("longitude", "77.5946")
-    hospital = data.get("hospital", "Nearest available hospital")
-    eta = data.get("eta", "Not available")
-    score = data.get("score", "Above 70%")
-
-    maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
-
-    message = f"""
-🚨 RAKSHA AI EMERGENCY ALERT 🚨
-
-Accident detected for: {name}
-
-Accident Score: {score}
-Location: {maps_link}
-
-Nearest Hospital: {hospital}
-ETA: {eta}
-
-Please respond immediately.
-""".strip()
-
-    return message
 
 
 @app.route("/")
@@ -145,53 +132,51 @@ def api_status():
     })
 
 
+@app.route("/api/alert/send", methods=["POST"])
+def send_alert_api():
+    data = request.get_json(silent=True) or {}
+
+    alert_message = build_alert_message(data)
+    result = send_twilio_sms(alert_message)
+
+    return jsonify({
+        "alert_message": alert_message,
+        "message_length": len(alert_message),
+        "result": result
+    })
+
+
 @app.route("/api/accident/trigger", methods=["GET", "POST"])
 def trigger_accident():
-    """
-    Demo accident trigger route.
-    This simulates:
-    STEP 1: Sense
-    STEP 2: Score
-    STEP 3: Confirm
-    STEP 4: Locate
-    STEP 5: Match
-    STEP 6: Alert
-    STEP 7: Dashboard update
-    """
-
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
     else:
         data = {}
 
-    accident_data = {
-        "name": data.get("name", "Demo User"),
-        "latitude": data.get("latitude", "12.9716"),
-        "longitude": data.get("longitude", "77.5946"),
-        "hospital": data.get("hospital", "City Emergency Hospital"),
-        "eta": data.get("eta", "8 minutes"),
-        "accelerometer_score": data.get("accelerometer_score", 85),
-        "sound_score": data.get("sound_score", 78)
-    }
+    name = data.get("name", "Demo User")
+    latitude = data.get("latitude", "12.9716")
+    longitude = data.get("longitude", "77.5946")
+    hospital = data.get("hospital", "City Hospital")
+    eta = data.get("eta", "8 min")
 
-    combined_score = (
-        accident_data["accelerometer_score"] * 0.55
-        + accident_data["sound_score"] * 0.45
-    )
+    accelerometer_score = float(data.get("accelerometer_score", 85))
+    sound_score = float(data.get("sound_score", 78))
+
+    combined_score = (accelerometer_score * 0.55) + (sound_score * 0.45)
 
     accident_confirmed = combined_score > 70
 
     if accident_confirmed:
         alert_message = build_alert_message({
-            "name": accident_data["name"],
-            "latitude": accident_data["latitude"],
-            "longitude": accident_data["longitude"],
-            "hospital": accident_data["hospital"],
-            "eta": accident_data["eta"],
-            "score": round(combined_score, 2)
+            "name": name,
+            "latitude": latitude,
+            "longitude": longitude,
+            "hospital": hospital,
+            "eta": eta
         })
 
         alert_result = send_twilio_sms(alert_message)
+
     else:
         alert_message = "Accident not confirmed. Alert not sent."
         alert_result = {
@@ -205,27 +190,15 @@ def trigger_accident():
         "threshold": 70,
         "sustained_time": "3 seconds",
         "location": {
-            "latitude": accident_data["latitude"],
-            "longitude": accident_data["longitude"],
-            "map_link": f"https://maps.google.com/?q={accident_data['latitude']},{accident_data['longitude']}"
+            "latitude": latitude,
+            "longitude": longitude,
+            "map_link": f"https://maps.google.com/?q={latitude},{longitude}"
         },
-        "nearest_hospital": accident_data["hospital"],
-        "eta": accident_data["eta"],
+        "nearest_hospital": hospital,
+        "eta": eta,
         "alert_message": alert_message,
+        "message_length": len(alert_message),
         "alert_result": alert_result
-    })
-
-
-@app.route("/api/alert/send", methods=["POST"])
-def send_alert_api():
-    data = request.get_json(silent=True) or {}
-
-    alert_message = build_alert_message(data)
-    result = send_twilio_sms(alert_message)
-
-    return jsonify({
-        "alert_message": alert_message,
-        "result": result
     })
 
 
@@ -320,15 +293,16 @@ def dashboard():
             grid-column: 1 / -1;
         }
 
-        a {
-            color: #38bdf8;
+        .flow {
+            line-height: 1.8;
+            color: #e5e7eb;
         }
     </style>
 </head>
 
 <body>
     <header>
-        <h1>🚨 RAKSHA AI</h1>
+        <h1>RAKSHA AI</h1>
         <p>Automated Accident Detection and Emergency Alert Dashboard</p>
     </header>
 
@@ -347,13 +321,15 @@ def dashboard():
 
         <div class="card">
             <h2>Emergency Alert</h2>
-            <p>Alert goes to saved emergency contacts using Twilio SMS.</p>
+            <p>Short SMS alert to verified emergency contacts.</p>
             <button onclick="sendTestAlert()">Send Test Alert</button>
         </div>
 
         <div class="card">
             <h2>System Flow</h2>
-            <p>Sense → Score → Confirm → Locate → Match → Alert → Dashboard</p>
+            <p class="flow">
+                Sense → Score → Confirm → Locate → Match → Alert → Dashboard
+            </p>
         </div>
 
         <div class="card full">
@@ -378,10 +354,46 @@ async function checkStatus() {
 
         log("Backend Status:");
         log(JSON.stringify(data, null, 2));
+
     } catch (error) {
         document.getElementById("backendStatus").textContent = "Error";
         document.getElementById("backendStatus").classList.add("danger");
         log("Error checking backend: " + error);
+    }
+}
+
+async function sendTestAlert() {
+    const payload = {
+        name: "Demo User",
+        latitude: "12.9716",
+        longitude: "77.5946",
+        hospital: "City Hospital",
+        eta: "8 min"
+    };
+
+    try {
+        const response = await fetch("/api/alert/send", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        log("Test Alert Result:");
+        log(JSON.stringify(data, null, 2));
+
+        if (data.result.success) {
+            alert("Emergency alert sent successfully. Message length: " + data.message_length);
+        } else {
+            alert("Alert failed: " + (data.result.error || JSON.stringify(data.result.failed)));
+        }
+
+    } catch (error) {
+        log("Error sending test alert: " + error);
+        alert("Error sending alert: " + error);
     }
 }
 
@@ -394,8 +406,8 @@ async function triggerAccident() {
         name: "Demo User",
         latitude: "12.9716",
         longitude: "77.5946",
-        hospital: "City Emergency Hospital",
-        eta: "8 minutes",
+        hospital: "City Hospital",
+        eta: "8 min",
         accelerometer_score: 85,
         sound_score: 78
     };
@@ -415,48 +427,14 @@ async function triggerAccident() {
         log(JSON.stringify(data, null, 2));
 
         if (data.accident_confirmed) {
-            alert("🚨 Accident Confirmed! Alert process triggered.");
+            alert("Accident confirmed. Alert triggered. Message length: " + data.message_length);
         } else {
             alert("Accident not confirmed.");
         }
 
     } catch (error) {
         log("Error triggering accident: " + error);
-    }
-}
-
-async function sendTestAlert() {
-    const payload = {
-        name: "RAKSHA AI Demo User",
-        latitude: "12.9716",
-        longitude: "77.5946",
-        hospital: "City Emergency Hospital",
-        eta: "8 minutes",
-        score: "Demo Alert"
-    };
-
-    try {
-        const response = await fetch("/api/alert/send", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await response.json();
-
-        log("Test Alert Result:");
-        log(JSON.stringify(data, null, 2));
-
-        if (data.result.success) {
-            alert("Emergency alert sent successfully.");
-        } else {
-            alert("Alert failed. Check Twilio credentials and contacts.");
-        }
-
-    } catch (error) {
-        log("Error sending test alert: " + error);
+        alert("Error triggering accident: " + error);
     }
 }
 
