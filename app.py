@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, redirect
+from flask import Flask, jsonify, request, redirect, render_template_string
 from flask_cors import CORS
 
 load_dotenv()
@@ -422,7 +422,7 @@ Focus only on accident detection, hospital routing, emergency contacts, and firs
 
 @app.route("/")
 def home():
-    return redirect("/health")
+    return redirect("/dashboard")
 
 
 @app.route("/health")
@@ -432,6 +432,286 @@ def health():
         "project": "RAKSHA AI",
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template_string("""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAKSHA AI Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        header {
+            background: linear-gradient(135deg, #dc2626, #7f1d1d);
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        header p {
+            margin-top: 8px;
+            color: #fee2e2;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 25px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #f87171;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 11px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            margin-top: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #b91c1c;
+        }
+
+        pre {
+            background: #020617;
+            color: #22c55e;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 350px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #166534;
+            color: white;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .danger {
+            background: #991b1b;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>RAKSHA AI Emergency Dashboard</h1>
+    <p>Accident Detection | Hospital Alert | Emergency Contacts | Demo 108 Alert</p>
+</header>
+
+<div class="container">
+
+    <div class="grid">
+
+        <div class="card">
+            <span class="badge">Backend</span>
+            <h2>System Status</h2>
+            <p>Check if Render environment variables and backend are active.</p>
+            <button onclick="checkStatus()">Check Status</button>
+            <pre id="statusOutput">Status result will appear here...</pre>
+        </div>
+
+        <div class="card">
+            <span class="badge danger">Emergency</span>
+            <h2>Accident Trigger</h2>
+            <p>This simulates g-force accident detection and sends separate alerts.</p>
+
+            <input id="name" value="Demo User" placeholder="User name">
+            <input id="latitude" value="12.8249" placeholder="Latitude">
+            <input id="longitude" value="77.5159" placeholder="Longitude">
+            <input id="hospital" value="Fortis Hospital Bangalore" placeholder="Nearest hospital">
+            <input id="eta" value="6 min" placeholder="ETA">
+
+            <input id="accelerometer_score" value="90" placeholder="Accelerometer score">
+            <input id="sound_score" value="85" placeholder="Sound score">
+
+            <button onclick="triggerAccident()">Trigger Accident Alert</button>
+            <pre id="accidentOutput">Accident result will appear here...</pre>
+        </div>
+
+        <div class="card">
+            <span class="badge">Hospital</span>
+            <h2>Find Nearby Hospital</h2>
+            <p>Returns nearby demo hospitals for routing.</p>
+
+            <input id="hospitalLat" value="12.8249" placeholder="Latitude">
+            <input id="hospitalLng" value="77.5159" placeholder="Longitude">
+
+            <button onclick="findHospital()">Find Hospital</button>
+            <pre id="hospitalOutput">Hospital result will appear here...</pre>
+        </div>
+
+        <div class="card">
+            <span class="badge">Chatbot</span>
+            <h2>RAKSHA AI Chat</h2>
+            <p>Test Tamil/Hindi/English first-aid chatbot.</p>
+
+            <textarea id="chatMessage" rows="3" placeholder="Ask something...">first aid</textarea>
+
+            <button onclick="sendChat()">Ask RAKSHA</button>
+            <pre id="chatOutput">Chat response will appear here...</pre>
+        </div>
+
+    </div>
+
+</div>
+
+<footer>
+    RAKSHA AI Hackathon Demo Dashboard
+</footer>
+
+<script>
+    async function checkStatus() {
+        const output = document.getElementById("statusOutput");
+        output.textContent = "Checking backend status...";
+
+        try {
+            const response = await fetch("/api/status");
+            const data = await response.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent = "Error: " + error.message;
+        }
+    }
+
+    async function triggerAccident() {
+        const output = document.getElementById("accidentOutput");
+        output.textContent = "Triggering accident alert...";
+
+        const payload = {
+            name: document.getElementById("name").value,
+            latitude: document.getElementById("latitude").value,
+            longitude: document.getElementById("longitude").value,
+            hospital: document.getElementById("hospital").value,
+            eta: document.getElementById("eta").value,
+            accelerometer_score: document.getElementById("accelerometer_score").value,
+            sound_score: document.getElementById("sound_score").value
+        };
+
+        try {
+            const response = await fetch("/api/accident/trigger", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent = "Error: " + error.message;
+        }
+    }
+
+    async function findHospital() {
+        const output = document.getElementById("hospitalOutput");
+        output.textContent = "Finding nearby hospitals...";
+
+        const payload = {
+            latitude: document.getElementById("hospitalLat").value,
+            longitude: document.getElementById("hospitalLng").value
+        };
+
+        try {
+            const response = await fetch("/find-hospital", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent = "Error: " + error.message;
+        }
+    }
+
+    async function sendChat() {
+        const output = document.getElementById("chatOutput");
+        output.textContent = "RAKSHA AI is replying...";
+
+        const payload = {
+            message: document.getElementById("chatMessage").value
+        };
+
+        try {
+            const response = await fetch("/api/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            output.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+            output.textContent = "Error: " + error.message;
+        }
+    }
+</script>
+
+</body>
+</html>
+    """)
 
 
 @app.route("/api/status")
