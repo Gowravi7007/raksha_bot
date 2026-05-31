@@ -10,78 +10,146 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Environment variables
+# -------------------------------------------------
+# ENVIRONMENT VARIABLES
+# -------------------------------------------------
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-# Supports both old and new variable name
+# Family / emergency contacts
 EMERGENCY_CONTACTS = os.getenv(
     "EMERGENCY_CONTACTS",
     os.getenv("EMERGENCY_CONTACT", "")
 )
 
+# Hospital demo contact numbers
+HOSPITAL_CONTACTS = os.getenv("HOSPITAL_CONTACTS", "")
+
+# Demo 108 ambulance contact number
+DEMO_108 = os.getenv("DEMO_108", "")
+
 
 # -------------------------------------------------
-# CONTACTS + ALERT MESSAGE
+# CONTACT HANDLING
 # -------------------------------------------------
 
-def get_contact_list():
+def parse_contact_list(contact_string):
     """
-    Reads emergency contacts from EMERGENCY_CONTACTS.
+    Converts comma-separated numbers into a list.
     Example:
-    EMERGENCY_CONTACTS=+917483348177,+91XXXXXXXXXX
+    +917483348177,+91XXXXXXXXXX
     """
-    if not EMERGENCY_CONTACTS:
+    if not contact_string:
         return []
 
     return [
         num.strip()
-        for num in EMERGENCY_CONTACTS.split(",")
+        for num in contact_string.split(",")
         if num.strip()
     ]
 
 
-def build_alert_message(data):
-    name = data.get("name", "User")
-    latitude = data.get("latitude", "12.9716")
-    longitude = data.get("longitude", "77.5946")
-    hospital = data.get("hospital", "City Hospital")
-    eta = data.get("eta", "8 min")
+def get_emergency_contacts():
+    return parse_contact_list(EMERGENCY_CONTACTS)
+
+
+def get_hospital_contacts():
+    return parse_contact_list(HOSPITAL_CONTACTS)
+
+
+def get_demo_108_contacts():
+    return parse_contact_list(DEMO_108)
+
+
+# -------------------------------------------------
+# SEPARATE ALERT MESSAGES
+# -------------------------------------------------
+
+def build_family_alert_message(data):
+    name = data.get("name", "Demo User")
+    latitude = data.get("latitude", "12.8249")
+    longitude = data.get("longitude", "77.5159")
+    hospital = data.get("hospital", "Nearest Hospital")
+    eta = data.get("eta", "6 min")
 
     maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
 
     return (
-        f"RAKSHA ALERT: Accident detected for {name}. "
+        f"RAKSHA FAMILY ALERT: Accident detected for {name}. "
         f"Location: {maps_link}. "
         f"Nearest hospital: {hospital}. "
-        f"ETA: {eta}. Please call immediately."
+        f"Estimated ambulance ETA: {eta}. "
+        f"Please contact the user immediately."
     )
+
+
+def build_hospital_alert_message(data):
+    name = data.get("name", "Demo User")
+    latitude = data.get("latitude", "12.8249")
+    longitude = data.get("longitude", "77.5159")
+    severity = data.get("severity", "High")
+    eta = data.get("eta", "6 min")
+
+    maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
+
+    return (
+        f"RAKSHA HOSPITAL ALERT: Possible road accident case incoming. "
+        f"Patient/User: {name}. "
+        f"Severity: {severity}. "
+        f"Accident location: {maps_link}. "
+        f"ETA: {eta}. "
+        f"Please keep emergency/trauma support ready."
+    )
+
+
+def build_108_alert_message(data):
+    name = data.get("name", "Demo User")
+    latitude = data.get("latitude", "12.8249")
+    longitude = data.get("longitude", "77.5159")
+    hospital = data.get("hospital", "Nearest Hospital")
+
+    maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
+
+    return (
+        f"RAKSHA 108 DEMO ALERT: Accident detected. "
+        f"User: {name}. "
+        f"Pickup location: {maps_link}. "
+        f"Suggested hospital: {hospital}. "
+        f"Ambulance dispatch required."
+    )
+
+
+# Backward-compatible old alert message
+def build_alert_message(data):
+    return build_family_alert_message(data)
 
 
 # -------------------------------------------------
 # TWILIO MESSAGE SENDING
 # -------------------------------------------------
 
-def send_twilio_sms(message):
+def send_twilio_message_to_contacts(message, contacts, category):
     """
-    First tries WhatsApp using Twilio Sandbox.
-    If WhatsApp fails, tries normal SMS fallback.
+    Sends message to a specific contact group.
+    First tries WhatsApp. If WhatsApp fails, tries SMS.
     """
 
     if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_PHONE_NUMBER:
         return {
             "success": False,
+            "category": category,
             "error": "Twilio credentials missing."
         }
-
-    contacts = get_contact_list()
 
     if not contacts:
         return {
             "success": False,
-            "error": "No emergency contacts found."
+            "category": category,
+            "error": f"No {category} contacts found."
         }
 
     try:
@@ -96,7 +164,8 @@ def send_twilio_sms(message):
             try:
                 # Try WhatsApp first
                 whatsapp_to = (
-                    contact if contact.startswith("whatsapp:")
+                    contact
+                    if contact.startswith("whatsapp:")
                     else f"whatsapp:{contact}"
                 )
 
@@ -106,7 +175,7 @@ def send_twilio_sms(message):
                     else f"whatsapp:{TWILIO_PHONE_NUMBER}"
                 )
 
-                sms = client.messages.create(
+                msg = client.messages.create(
                     body=message,
                     from_=whatsapp_from,
                     to=whatsapp_to
@@ -114,15 +183,15 @@ def send_twilio_sms(message):
 
                 sent_messages.append({
                     "to": contact,
-                    "sid": sms.sid,
-                    "status": sms.status,
+                    "sid": msg.sid,
+                    "status": msg.status,
                     "via": "whatsapp"
                 })
 
             except Exception as whatsapp_error:
                 # If WhatsApp fails, try normal SMS
                 try:
-                    sms = client.messages.create(
+                    msg = client.messages.create(
                         body=message,
                         from_=TWILIO_PHONE_NUMBER,
                         to=contact
@@ -130,8 +199,8 @@ def send_twilio_sms(message):
 
                     sent_messages.append({
                         "to": contact,
-                        "sid": sms.sid,
-                        "status": sms.status,
+                        "sid": msg.sid,
+                        "status": msg.status,
                         "via": "sms"
                     })
 
@@ -144,6 +213,7 @@ def send_twilio_sms(message):
 
         return {
             "success": len(sent_messages) > 0,
+            "category": category,
             "sent_count": len(sent_messages),
             "failed_count": len(failed_messages),
             "messages": sent_messages,
@@ -153,13 +223,65 @@ def send_twilio_sms(message):
     except Exception as e:
         return {
             "success": False,
+            "category": category,
             "error": str(e)
         }
 
 
+def send_twilio_sms(message):
+    """
+    Backward-compatible old function.
+    Sends only to emergency contacts.
+    """
+    return send_twilio_message_to_contacts(
+        message,
+        get_emergency_contacts(),
+        "emergency_contacts"
+    )
+
+
+def send_all_accident_alerts(data):
+    """
+    Sends three separate alert messages:
+    1. Family / emergency contact
+    2. Hospital contact
+    3. Demo 108 contact
+    """
+
+    family_message = build_family_alert_message(data)
+    hospital_message = build_hospital_alert_message(data)
+    demo_108_message = build_108_alert_message(data)
+
+    family_result = send_twilio_message_to_contacts(
+        family_message,
+        get_emergency_contacts(),
+        "emergency_contacts"
+    )
+
+    hospital_result = send_twilio_message_to_contacts(
+        hospital_message,
+        get_hospital_contacts(),
+        "hospital_contacts"
+    )
+
+    demo_108_result = send_twilio_message_to_contacts(
+        demo_108_message,
+        get_demo_108_contacts(),
+        "demo_108"
+    )
+
+    return {
+        "family_message": family_message,
+        "hospital_message": hospital_message,
+        "demo_108_message": demo_108_message,
+        "family_result": family_result,
+        "hospital_result": hospital_result,
+        "demo_108_result": demo_108_result
+    }
+
+
 # -------------------------------------------------
-# CHATBOT RESPONSES
-# Gemini if available, fallback if not
+# CHATBOT — Gemini if available, fallback if not
 # -------------------------------------------------
 
 CHAT_RESPONSES = {
@@ -197,10 +319,6 @@ CHAT_RESPONSES = {
 
 
 def detect_language(message):
-    """
-    Simple Tamil / Hindi / English detection.
-    """
-
     tamil_chars = set(
         "அஆஇஈஉஊஎஏஐஒஓஔகஙசஞடணதநபமயரலவழளறன"
     )
@@ -253,11 +371,6 @@ def get_intent(message):
 
 
 def gemini_chat(message, lang):
-    """
-    Uses Gemini only if GEMINI_API_KEY is available.
-    If not available or if API fails, returns None.
-    """
-
     if not GEMINI_API_KEY:
         return None
 
@@ -330,7 +443,9 @@ def api_status():
             "TWILIO_ACCOUNT_SID": bool(TWILIO_ACCOUNT_SID),
             "TWILIO_AUTH_TOKEN": bool(TWILIO_AUTH_TOKEN),
             "TWILIO_PHONE_NUMBER": bool(TWILIO_PHONE_NUMBER),
-            "EMERGENCY_CONTACTS": bool(get_contact_list())
+            "EMERGENCY_CONTACTS": bool(get_emergency_contacts()),
+            "HOSPITAL_CONTACTS": bool(get_hospital_contacts()),
+            "DEMO_108": bool(get_demo_108_contacts())
         }
     })
 
@@ -373,18 +488,25 @@ def chat():
 @app.route("/api/alert/send", methods=["POST"])
 def send_alert_api():
     """
-    Manual alert test endpoint.
-    Frontend can call this directly.
+    Manual test endpoint.
+    Sends separate messages to family, hospital, and demo 108.
     """
 
     data = request.get_json(silent=True) or {}
 
-    alert_message = build_alert_message(data)
-    result = send_twilio_sms(alert_message)
+    alert_data = {
+        "name": data.get("name", "Demo User"),
+        "latitude": data.get("latitude", "12.8249"),
+        "longitude": data.get("longitude", "77.5159"),
+        "hospital": data.get("hospital", "Fortis Hospital Bangalore"),
+        "eta": data.get("eta", "6 min"),
+        "severity": data.get("severity", "High")
+    }
+
+    result = send_all_accident_alerts(alert_data)
 
     return jsonify({
-        "alert_message": alert_message,
-        "message_length": len(alert_message),
+        "status": "manual_alert_sent",
         "result": result
     })
 
@@ -394,7 +516,10 @@ def trigger_accident():
     """
     Main automatic accident trigger endpoint.
 
-    If combined score > 70, alert is sent automatically.
+    If combined score > 70:
+    - family alert goes to EMERGENCY_CONTACTS
+    - hospital alert goes to HOSPITAL_CONTACTS
+    - ambulance alert goes to DEMO_108
     """
 
     if request.method == "POST":
@@ -408,25 +533,37 @@ def trigger_accident():
     hospital = data.get("hospital", "Fortis Hospital Bangalore")
     eta = data.get("eta", "6 min")
 
-    accelerometer_score = float(data.get("accelerometer_score", 85))
-    sound_score = float(data.get("sound_score", 78))
+    try:
+        accelerometer_score = float(data.get("accelerometer_score", 85))
+        sound_score = float(data.get("sound_score", 78))
+    except ValueError:
+        return jsonify({
+            "error": "accelerometer_score and sound_score must be numbers"
+        }), 400
 
     combined_score = (accelerometer_score * 0.55) + (sound_score * 0.45)
     accident_confirmed = combined_score > 70
 
     if accident_confirmed:
-        alert_message = build_alert_message({
+        alert_data = {
             "name": name,
             "latitude": latitude,
             "longitude": longitude,
             "hospital": hospital,
-            "eta": eta
-        })
+            "eta": eta,
+            "severity": "High"
+        }
 
-        alert_result = send_twilio_sms(alert_message)
+        alert_result = send_all_accident_alerts(alert_data)
+
+        alert_message = (
+            "Accident confirmed. Separate alerts sent to emergency contacts, "
+            "hospital contacts, and demo 108."
+        )
 
     else:
         alert_message = "Accident not confirmed. Score below threshold."
+
         alert_result = {
             "success": False,
             "error": "Score below threshold."
