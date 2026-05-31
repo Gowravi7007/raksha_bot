@@ -147,6 +147,7 @@ def send_twilio_message_to_contacts(message, contacts, category):
 
         for contact in contacts:
             try:
+                # Try WhatsApp first
                 whatsapp_to = (
                     contact
                     if contact.startswith("whatsapp:")
@@ -173,6 +174,7 @@ def send_twilio_message_to_contacts(message, contacts, category):
                 })
 
             except Exception as whatsapp_error:
+                # Fallback to normal SMS
                 try:
                     msg = client.messages.create(
                         body=message,
@@ -252,6 +254,17 @@ def send_all_accident_alerts(data):
     }
 
 
+def has_any_alert_sent(alert_result):
+    if not alert_result:
+        return False
+
+    family_success = alert_result.get("family_result", {}).get("success", False)
+    hospital_success = alert_result.get("hospital_result", {}).get("success", False)
+    demo_108_success = alert_result.get("demo_108_result", {}).get("success", False)
+
+    return family_success or hospital_success or demo_108_success
+
+
 # -------------------------------------------------
 # CHATBOT FALLBACK RESPONSES
 # -------------------------------------------------
@@ -299,11 +312,11 @@ CHAT_RESPONSES = {
         "ta": "நான் AAROHI AI. விபத்து எச்சரிக்கை, அருகிலுள்ள மருத்துவமனை மற்றும் முதலுதவியில் உதவ முடியும்.",
         "kn": "ನಾನು AAROHI AI. ಅಪಘಾತ ಎಚ್ಚರಿಕೆ, ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆ ಮತ್ತು ಪ್ರಥಮ ಚಿಕಿತ್ಸೆಯಲ್ಲಿ ಸಹಾಯ ಮಾಡಬಹುದು.",
         "te": "నేను AAROHI AI. ప్రమాద హెచ్చరికలు, సమీప ఆసుపత్రులు మరియు ప్రథమ చికిత్సలో సహాయం చేయగలను.",
-        "ml": "ഞാൻ AAROHI AIആണ്. അപകട മുന്നറിയിപ്പുകൾ, അടുത്തുള്ള ആശുപത്രികൾ, പ്രഥമ ശുശ്രൂഷ എന്നിവയിൽ സഹായിക്കാം.",
+        "ml": "ഞാൻ AAROHI AI ആണ്. അപകട മുന്നറിയിപ്പുകൾ, അടുത്തുള്ള ആശുപത്രികൾ, പ്രഥമ ശുശ്രൂഷ എന്നിവയിൽ സഹായിക്കാം.",
         "mr": "मी AAROHI AI आहे. अपघात अलर्ट, जवळचे रुग्णालय आणि प्राथमिक उपचारात मदत करू शकतो.",
-        "bn": "আমি AAROHI AI । দুর্ঘটনা সতর্কতা, নিকটতম হাসপাতাল এবং প্রাথমিক চিকিৎসায় সাহায্য করতে পারি।",
-        "gu": "હું AAROHI AIછું. અકસ્માત એલર્ટ, નજીકની હોસ્પિટલ અને પ્રાથમિક સારવારમાં મદદ કરી શકું છું.",
-        "pa": "ਮੈਂ AAROHI AIਹਾਂ। ਮੈਂ ਹਾਦਸਾ ਅਲਰਟ, ਨੇੜਲਾ ਹਸਪਤਾਲ ਅਤੇ ਪਹਿਲੀ ਸਹਾਇਤਾ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।"
+        "bn": "আমি AAROHI AI। দুর্ঘটনা সতর্কতা, নিকটতম হাসপাতাল এবং প্রাথমিক চিকিৎসায় সাহায্য করতে পারি।",
+        "gu": "હું AAROHI AI છું. અકસ્માત એલર્ટ, નજીકની હોસ્પિટલ અને પ્રાથમિક સારવારમાં મદદ કરી શકું છું.",
+        "pa": "ਮੈਂ AAROHI AI ਹਾਂ। ਮੈਂ ਹਾਦਸਾ ਅਲਰਟ, ਨੇੜਲਾ ਹਸਪਤਾਲ ਅਤੇ ਪਹਿਲੀ ਸਹਾਇਤਾ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।"
     }
 }
 
@@ -337,7 +350,7 @@ def get_intent(message):
     accident_words = [
         "accident", "crash", "impact", "collision",
         "दुर्घटना", "अपघात", "விபத்து", "ಅಪಘಾತ", "ప్రమాదం",
-        "അപകടം", "দুর্ঘটনা", "અકસ્માત", "ਹਾਦਸਾ"
+        "അപകടം", "দুর্ঘটনা", "અક અકસ્માત", "અકસ્માત", "ਹਾਦਸਾ"
     ]
 
     hospital_words = [
@@ -666,7 +679,7 @@ def dashboard():
             firstAidBtn: "Show First Aid",
             footerText: "AAROHI AI Hackathon Demo",
             sending: "Sending emergency alerts...",
-            alertSuccess: "Accident alert sent to emergency contacts, hospital and 108 demo contact.",
+            alertSuccess: "Accident alert sent successfully.",
             alertFailed: "Alert could not be sent. Please check contact setup.",
             hospitalFound: "Nearest hospitals found: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "First aid: Do not move the injured person. Check breathing. Call 108. Apply pressure to bleeding wounds."
@@ -686,7 +699,7 @@ def dashboard():
             firstAidBtn: "प्राथमिक चिकित्सा दिखाएं",
             footerText: "AAROHI AI हैकाथॉन डेमो",
             sending: "आपातकालीन अलर्ट भेजे जा रहे हैं...",
-            alertSuccess: "दुर्घटना अलर्ट परिवार, अस्पताल और 108 डेमो संपर्क को भेज दिया गया।",
+            alertSuccess: "दुर्घटना अलर्ट सफलतापूर्वक भेजा गया।",
             alertFailed: "अलर्ट भेजा नहीं जा सका। संपर्क सेटअप जांचें।",
             hospitalFound: "नजदीकी अस्पताल: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "प्राथमिक चिकित्सा: घायल व्यक्ति को न हिलाएं। सांस जांचें। 108 कॉल करें। खून बहने पर दबाव डालें।"
@@ -706,14 +719,14 @@ def dashboard():
             firstAidBtn: "முதலுதவி காட்டு",
             footerText: "AAROHI AI ஹாக்கத்தான் டெமோ",
             sending: "அவசர எச்சரிக்கைகள் அனுப்பப்படுகின்றன...",
-            alertSuccess: "விபத்து எச்சரிக்கை குடும்பம், மருத்துவமனை மற்றும் 108 டெமோ தொடர்புக்கு அனுப்பப்பட்டது.",
+            alertSuccess: "விபத்து எச்சரிக்கை வெற்றிகரமாக அனுப்பப்பட்டது.",
             alertFailed: "எச்சரிக்கை அனுப்ப முடியவில்லை. தொடர்பு அமைப்பை சரிபார்க்கவும்.",
             hospitalFound: "அருகிலுள்ள மருத்துவமனைகள்: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "முதலுதவி: காயமடைந்த நபரை நகர்த்தாதீர்கள். சுவாசம் சரிபார்க்கவும். 108 அழைக்கவும். இரத்தப்போக்கை அழுத்தத்தால் நிறுத்தவும்."
         },
 
         kn: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "ತುರ್ತು ಅಪಘಾತ ಪತ್ತೆ ಮತ್ತು ರಕ್ಷಣಾ ಎಚ್ಚರಿಕೆ ವ್ಯವಸ್ಥೆ",
             accidentTitle: "ಅಪಘಾತ ಎಚ್ಚರಿಕೆ",
             accidentText: "ಅಪಘಾತ ಪತ್ತೆಯನ್ನು ಪರೀಕ್ಷಿಸಿ ಕುಟುಂಬ, ಆಸ್ಪತ್ರೆ ಮತ್ತು 108 ಡೆಮೋ ಸಂಪರ್ಕಕ್ಕೆ ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸುತ್ತದೆ.",
@@ -726,14 +739,14 @@ def dashboard():
             firstAidBtn: "ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ತೋರಿಸಿ",
             footerText: "AAROHI AI ಹ್ಯಾಕಥಾನ್ ಡೆಮೋ",
             sending: "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳನ್ನು ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
-            alertSuccess: "ಅಪಘಾತ ಎಚ್ಚರಿಕೆ ಕುಟುಂಬ, ಆಸ್ಪತ್ರೆ ಮತ್ತು 108 ಡೆಮೋ ಸಂಪರ್ಕಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
+            alertSuccess: "ಅಪಘಾತ ಎಚ್ಚರಿಕೆ ಯಶಸ್ವಿಯಾಗಿ ಕಳುಹಿಸಲಾಗಿದೆ.",
             alertFailed: "ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಲಾಗಲಿಲ್ಲ. ಸಂಪರ್ಕ ವ್ಯವಸ್ಥೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",
             hospitalFound: "ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆಗಳು: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ: ಗಾಯಗೊಂಡ ವ್ಯಕ್ತಿಯನ್ನು ಕದಲಿಸಬೇಡಿ. ಉಸಿರಾಟ ಪರಿಶೀಲಿಸಿ. 108 ಗೆ ಕರೆ ಮಾಡಿ. ರಕ್ತಸ್ರಾವ ಇದ್ದರೆ ಒತ್ತಡ ಹಾಕಿ."
         },
 
         te: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "అత్యవసర ప్రమాద గుర్తింపు మరియు రక్షణ హెచ్చరిక వ్యవస్థ",
             accidentTitle: "ప్రమాద హెచ్చరిక",
             accidentText: "ప్రమాద గుర్తింపును పరీక్షించి కుటుంబం, ఆసుపత్రి మరియు 108 డెమో సంప్రదింపుకు హెచ్చరిక పంపుతుంది.",
@@ -746,14 +759,14 @@ def dashboard():
             firstAidBtn: "ప్రథమ చికిత్స చూపించు",
             footerText: "AAROHI AI హ్యాకథాన్ డెమో",
             sending: "అత్యవసర హెచ్చరికలు పంపబడుతున్నాయి...",
-            alertSuccess: "ప్రమాద హెచ్చరిక కుటుంబం, ఆసుపత్రి మరియు 108 డెమో సంప్రదింపుకు పంపబడింది.",
+            alertSuccess: "ప్రమాద హెచ్చరిక విజయవంతంగా పంపబడింది.",
             alertFailed: "హెచ్చరిక పంపలేకపోయాం. సంప్రదింపు సెటప్ తనిఖీ చేయండి.",
             hospitalFound: "సమీప ఆసుపత్రులు: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "ప్రథమ చికిత్స: గాయపడిన వ్యక్తిని కదలించవద్దు. శ్వాసను పరీక్షించండి. 108 కి కాల్ చేయండి. రక్తస్రావం ఉంటే ఒత్తిడి పెట్టండి."
         },
 
         ml: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "അടിയന്തര അപകട കണ്ടെത്തൽയും രക്ഷാ അലർട്ട് സംവിധാനവും",
             accidentTitle: "അപകട അലർട്ട്",
             accidentText: "അപകട കണ്ടെത്തൽ പരീക്ഷിച്ച് കുടുംബം, ആശുപത്രി, 108 ഡെമോ കോൺടാക്ട് എന്നിവർക്കു അലർട്ട് അയയ്ക്കുന്നു.",
@@ -766,14 +779,14 @@ def dashboard():
             firstAidBtn: "പ്രഥമ ശുശ്രൂഷ കാണിക്കുക",
             footerText: "AAROHI AI ഹാക്കത്തോൺ ഡെമോ",
             sending: "അടിയന്തര അലർട്ടുകൾ അയയ്ക്കുന്നു...",
-            alertSuccess: "അപകട അലർട്ട് കുടുംബം, ആശുപത്രി, 108 ഡെമോ കോൺടാക്ട് എന്നിവർക്കു അയച്ചു.",
+            alertSuccess: "അപകട അലർട്ട് വിജയകരമായി അയച്ചു.",
             alertFailed: "അലർട്ട് അയയ്ക്കാൻ കഴിഞ്ഞില്ല. കോൺടാക്ട് സജ്ജീകരണം പരിശോധിക്കുക.",
             hospitalFound: "അടുത്തുള്ള ആശുപത്രികൾ: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "പ്രഥമ ശുശ്രൂഷ: പരിക്കേറ്റ വ്യക്തിയെ നീക്കരുത്. ശ്വാസം പരിശോധിക്കുക. 108 വിളിക്കുക. രക്തസ്രാവം ഉണ്ടെങ്കിൽ സമ്മർദ്ദം നൽകുക."
         },
 
         mr: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "आपत्कालीन अपघात ओळख आणि बचाव अलर्ट प्रणाली",
             accidentTitle: "अपघात अलर्ट",
             accidentText: "अपघात ओळख डेमो करून कुटुंब, रुग्णालय आणि 108 डेमो संपर्काला अलर्ट पाठवते.",
@@ -786,14 +799,14 @@ def dashboard():
             firstAidBtn: "प्राथमिक उपचार दाखवा",
             footerText: "AAROHI AI हॅकाथॉन डेमो",
             sending: "आपत्कालीन अलर्ट पाठवले जात आहेत...",
-            alertSuccess: "अपघात अलर्ट कुटुंब, रुग्णालय आणि 108 डेमो संपर्काला पाठवला.",
+            alertSuccess: "अपघात अलर्ट यशस्वीपणे पाठवला.",
             alertFailed: "अलर्ट पाठवता आला नाही. संपर्क सेटअप तपासा.",
             hospitalFound: "जवळची रुग्णालये: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "प्राथमिक उपचार: जखमी व्यक्तीला हलवू नका. श्वास तपासा. 108 वर कॉल करा. रक्तस्त्राव असल्यास दाब द्या."
         },
 
         bn: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "জরুরি দুর্ঘটনা শনাক্তকরণ ও উদ্ধার সতর্কতা ব্যবস্থা",
             accidentTitle: "দুর্ঘটনা সতর্কতা",
             accidentText: "দুর্ঘটনা শনাক্তকরণের ডেমো করে পরিবার, হাসপাতাল এবং 108 ডেমো কন্ট্যাক্টে সতর্কতা পাঠায়।",
@@ -806,14 +819,14 @@ def dashboard():
             firstAidBtn: "প্রাথমিক চিকিৎসা দেখান",
             footerText: "AAROHI AI হ্যাকাথন ডেমো",
             sending: "জরুরি সতর্কতা পাঠানো হচ্ছে...",
-            alertSuccess: "দুর্ঘটনা সতর্কতা পরিবার, হাসপাতাল এবং 108 ডেমো কন্ট্যাক্টে পাঠানো হয়েছে।",
+            alertSuccess: "দুর্ঘটনা সতর্কতা সফলভাবে পাঠানো হয়েছে।",
             alertFailed: "সতর্কতা পাঠানো যায়নি। কন্ট্যাক্ট সেটআপ পরীক্ষা করুন।",
             hospitalFound: "নিকটতম হাসপাতাল: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "প্রাথমিক চিকিৎসা: আহত ব্যক্তিকে নড়াবেন না। শ্বাস পরীক্ষা করুন। 108-এ কল করুন। রক্তপাত হলে চাপ দিন।"
         },
 
         gu: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "ઇમરજન્સી અકસ્માત ઓળખ અને બચાવ એલર્ટ સિસ્ટમ",
             accidentTitle: "અકસ્મિક એલર્ટ",
             accidentText: "અકસ્મિક ઓળખનો ડેમો કરીને પરિવાર, હોસ્પિટલ અને 108 ડેમો સંપર્કને એલર્ટ મોકલે છે.",
@@ -826,14 +839,14 @@ def dashboard():
             firstAidBtn: "પ્રાથમિક સારવાર બતાવો",
             footerText: "AAROHI AI હેકાથોન ડેમો",
             sending: "ઇમરજન્સી એલર્ટ મોકલાઈ રહ્યા છે...",
-            alertSuccess: "અકસ્મિક એલર્ટ પરિવાર, હોસ્પિટલ અને 108 ડેમો સંપર્કને મોકલાયું.",
+            alertSuccess: "અકસ્મિક એલર્ટ સફળતાપૂર્વક મોકલાયું.",
             alertFailed: "એલર્ટ મોકલી શકાયું નથી. સંપર્ક સેટઅપ તપાસો.",
             hospitalFound: "નજીકની હોસ્પિટલો: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "પ્રાથમિક સારવાર: ઇજાગ્રસ્ત વ્યક્તિને ખસેડશો નહીં. શ્વાસ તપાસો. 108 પર કોલ કરો. રક્તસ્ત્રાવ હોય તો દબાણ આપો."
         },
 
         pa: {
-            title: "AAROHI AI ",
+            title: "AAROHI AI",
             subtitle: "ਐਮਰਜੈਂਸੀ ਹਾਦਸਾ ਪਛਾਣ ਅਤੇ ਬਚਾਅ ਅਲਰਟ ਸਿਸਟਮ",
             accidentTitle: "ਹਾਦਸਾ ਅਲਰਟ",
             accidentText: "ਹਾਦਸਾ ਪਛਾਣ ਦਾ ਡੈਮੋ ਕਰਕੇ ਪਰਿਵਾਰ, ਹਸਪਤਾਲ ਅਤੇ 108 ਡੈਮੋ ਸੰਪਰਕ ਨੂੰ ਅਲਰਟ ਭੇਜਦਾ ਹੈ।",
@@ -844,9 +857,9 @@ def dashboard():
             firstAidTitle: "ਪਹਿਲੀ ਸਹਾਇਤਾ",
             firstAidText: "ਚੁਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਤੁਰੰਤ ਪਹਿਲੀ ਸਹਾਇਤਾ ਮਾਰਗਦਰਸ਼ਨ ਲਵੋ।",
             firstAidBtn: "ਪਹਿਲੀ ਸਹਾਇਤਾ ਦਿਖਾਓ",
-            footerText: "AAROHI AIਹੈਕਾਥਾਨ ਡੈਮੋ",
+            footerText: "AAROHI AI ਹੈਕਾਥਾਨ ਡੈਮੋ",
             sending: "ਐਮਰਜੈਂਸੀ ਅਲਰਟ ਭੇਜੇ ਜਾ ਰਹੇ ਹਨ...",
-            alertSuccess: "ਹਾਦਸਾ ਅਲਰਟ ਪਰਿਵਾਰ, ਹਸਪਤਾਲ ਅਤੇ 108 ਡੈਮੋ ਸੰਪਰਕ ਨੂੰ ਭੇਜਿਆ ਗਿਆ।",
+            alertSuccess: "ਹਾਦਸਾ ਅਲਰਟ ਸਫਲਤਾਪੂਰਵਕ ਭੇਜਿਆ ਗਿਆ।",
             alertFailed: "ਅਲਰਟ ਨਹੀਂ ਭੇਜਿਆ ਜਾ ਸਕਿਆ। ਸੰਪਰਕ ਸੈਟਅਪ ਚੈੱਕ ਕਰੋ।",
             hospitalFound: "ਨੇੜਲੇ ਹਸਪਤਾਲ: Fortis Hospital, Manipal Hospital, St. Martha's Hospital.",
             firstAid: "ਪਹਿਲੀ ਸਹਾਇਤਾ: ਜ਼ਖਮੀ ਵਿਅਕਤੀ ਨੂੰ ਨਾ ਹਿਲਾਓ। ਸਾਹ ਚੈੱਕ ਕਰੋ। 108 ਤੇ ਕਾਲ ਕਰੋ। ਖੂਨ ਵਗੇ ਤਾਂ ਦਬਾਅ ਦਿਓ।"
@@ -918,14 +931,41 @@ def dashboard():
 
             const data = await response.json();
 
-            if (data.accident_confirmed === true) {
+            console.log("Accident trigger response:", data);
+
+            if (data.dashboard_status === "alert_sent") {
                 showResult("accidentResult", t.alertSuccess, false);
-            } else {
-                showResult("accidentResult", t.alertFailed, true);
+            }
+            else if (data.dashboard_status === "twilio_failed") {
+                showResult(
+                    "accidentResult",
+                    "Accident detected, but message delivery failed. Check Twilio verified numbers or Render environment variables.",
+                    true
+                );
+            }
+            else if (data.dashboard_status === "below_threshold") {
+                showResult(
+                    "accidentResult",
+                    "Accident score is below threshold. Alert was not sent.",
+                    true
+                );
+            }
+            else {
+                showResult(
+                    "accidentResult",
+                    "Alert request completed, but status could not be confirmed.",
+                    true
+                );
             }
 
         } catch (error) {
-            showResult("accidentResult", t.alertFailed, true);
+            console.error("Dashboard error:", error);
+
+            showResult(
+                "accidentResult",
+                "Dashboard could not connect to backend. Please check Render deployment.",
+                true
+            );
         }
     }
 
@@ -1059,9 +1099,11 @@ def send_alert_api():
     }
 
     result = send_all_accident_alerts(alert_data)
+    any_alert_sent = has_any_alert_sent(result)
 
     return jsonify({
-        "status": "manual_alert_sent",
+        "status": "manual_alert_sent" if any_alert_sent else "manual_alert_failed",
+        "any_alert_sent": any_alert_sent,
         "result": result
     })
 
@@ -1084,7 +1126,8 @@ def trigger_accident():
         sound_score = float(data.get("sound_score", 78))
     except ValueError:
         return jsonify({
-            "error": "accelerometer_score and sound_score must be numbers"
+            "error": "accelerometer_score and sound_score must be numbers",
+            "dashboard_status": "invalid_score"
         }), 400
 
     combined_score = (accelerometer_score * 0.55) + (sound_score * 0.45)
@@ -1101,15 +1144,24 @@ def trigger_accident():
         }
 
         alert_result = send_all_accident_alerts(alert_data)
+        any_alert_sent = has_any_alert_sent(alert_result)
 
-        alert_message = (
-            "Accident confirmed. Separate alerts sent to emergency contacts, "
-            "hospital contacts, and demo 108."
-        )
+        if any_alert_sent:
+            dashboard_status = "alert_sent"
+            alert_message = (
+                "Accident confirmed. Alert sent successfully to at least one contact group."
+            )
+        else:
+            dashboard_status = "twilio_failed"
+            alert_message = (
+                "Accident confirmed, but Twilio could not deliver the alert. "
+                "Check verified numbers, sender number, or Twilio logs."
+            )
 
     else:
+        any_alert_sent = False
+        dashboard_status = "below_threshold"
         alert_message = "Accident not confirmed. Score below threshold."
-
         alert_result = {
             "success": False,
             "error": "Score below threshold."
@@ -1117,6 +1169,8 @@ def trigger_accident():
 
     return jsonify({
         "accident_confirmed": accident_confirmed,
+        "any_alert_sent": any_alert_sent,
+        "dashboard_status": dashboard_status,
         "combined_score": round(combined_score, 2),
         "threshold": 70,
         "location": {
