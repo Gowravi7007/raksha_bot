@@ -70,7 +70,7 @@ def build_family_alert_message(data):
     maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
 
     return (
-        f"RAKSHA FAMILY ALERT: Accident detected for {name}. "
+        f"AAROHI FAMILY ALERT: Accident detected for {name}. "
         f"Location: {maps_link}. "
         f"Nearest hospital: {hospital}. "
         f"Estimated ambulance ETA: {eta}. "
@@ -88,7 +88,7 @@ def build_hospital_alert_message(data):
     maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
 
     return (
-        f"RAKSHA HOSPITAL ALERT: Possible road accident case incoming. "
+        f"AAROHI HOSPITAL ALERT: Possible road accident case incoming. "
         f"Patient/User: {name}. "
         f"Severity: {severity}. "
         f"Accident location: {maps_link}. "
@@ -106,7 +106,7 @@ def build_108_alert_message(data):
     maps_link = f"https://maps.google.com/?q={latitude},{longitude}"
 
     return (
-        f"RAKSHA 108 DEMO ALERT: Accident detected. "
+        f"AAROHI 108 DEMO ALERT: Accident detected. "
         f"User: {name}. "
         f"Pickup location: {maps_link}. "
         f"Suggested hospital: {hospital}. "
@@ -294,16 +294,16 @@ CHAT_RESPONSES = {
         "pa": "ਨੇੜਲਾ ਹਸਪਤਾਲ ਮਿਲ ਗਿਆ ਹੈ। ਐਂਬੂਲੈਂਸ ਸਹਾਇਤਾ ਦਾ ਪ੍ਰਬੰਧ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ।"
     },
     "default": {
-        "en": "I am RAKSHA AI. I can help with accident alerts, nearby hospitals, and first aid.",
-        "hi": "मैं RAKSHA AI हूं। मैं दुर्घटना अलर्ट, नजदीकी अस्पताल और प्राथमिक चिकित्सा में मदद कर सकता हूं।",
-        "ta": "நான் RAKSHA AI. விபத்து எச்சரிக்கை, அருகிலுள்ள மருத்துவமனை மற்றும் முதலுதவியில் உதவ முடியும்.",
-        "kn": "ನಾನು RAKSHA AI. ಅಪಘಾತ ಎಚ್ಚರಿಕೆ, ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆ ಮತ್ತು ಪ್ರಥಮ ಚಿಕಿತ್ಸೆಯಲ್ಲಿ ಸಹಾಯ ಮಾಡಬಹುದು.",
-        "te": "నేను RAKSHA AI. ప్రమాద హెచ్చరికలు, సమీప ఆసుపత్రులు మరియు ప్రథమ చికిత్సలో సహాయం చేయగలను.",
-        "ml": "ഞാൻ RAKSHA AI ആണ്. അപകട മുന്നറിയിപ്പുകൾ, അടുത്തുള്ള ആശുപത്രികൾ, പ്രഥമ ശുശ്രൂഷ എന്നിവയിൽ സഹായിക്കാം.",
-        "mr": "मी RAKSHA AI आहे. अपघात अलर्ट, जवळचे रुग्णालय आणि प्राथमिक उपचारात मदत करू शकतो.",
-        "bn": "আমি RAKSHA AI। দুর্ঘটনা সতর্কতা, নিকটতম হাসপাতাল এবং প্রাথমিক চিকিৎসায় সাহায্য করতে পারি।",
-        "gu": "હું RAKSHA AI છું. અકસ્માત એલર્ટ, નજીકની હોસ્પિટલ અને પ્રાથમિક સારવારમાં મદદ કરી શકું છું.",
-        "pa": "ਮੈਂ RAKSHA AI ਹਾਂ। ਮੈਂ ਹਾਦਸਾ ਅਲਰਟ, ਨੇੜਲਾ ਹਸਪਤਾਲ ਅਤੇ ਪਹਿਲੀ ਸਹਾਇਤਾ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।"
+        "en": "I am AAROHI AI. I can help with accident alerts, nearby hospitals, and first aid.",
+        "hi": "मैं AAROHI AI हूं। मैं दुर्घटना अलर्ट, नजदीकी अस्पताल और प्राथमिक चिकित्सा में मदद कर सकता हूं।",
+        "ta": "நான் AAROHI AI. விபத்து எச்சரிக்கை, அருகிலுள்ள மருத்துவமனை மற்றும் முதலுதவியில் உதவ முடியும்.",
+        "kn": "ನಾನು AAROHI AI. ಅಪಘಾತ ಎಚ್ಚರಿಕೆ, ಹತ್ತಿರದ ಆಸ್ಪತ್ರೆ ಮತ್ತು ಪ್ರಥಮ ಚಿಕಿತ್ಸೆಯಲ್ಲಿ ಸಹಾಯ ಮಾಡಬಹುದು.",
+        "te": "నేను AAROHI AI. ప్రమాద హెచ్చరికలు, సమీప ఆసుపత్రులు మరియు ప్రథమ చికిత్సలో సహాయం చేయగలను.",
+        "ml": "ഞാൻ AAROHI AIആണ്. അപകട മുന്നറിയിപ്പുകൾ, അടുത്തുള്ള ആശുപത്രികൾ, പ്രഥമ ശുശ്രൂഷ എന്നിവയിൽ സഹായിക്കാം.",
+        "mr": "मी AAROHI AI आहे. अपघात अलर्ट, जवळचे रुग्णालय आणि प्राथमिक उपचारात मदत करू शकतो.",
+        "bn": "আমি AAROHI AI । দুর্ঘটনা সতর্কতা, নিকটতম হাসপাতাল এবং প্রাথমিক চিকিৎসায় সাহায্য করতে পারি।",
+        "gu": "હું AAROHI AIછું. અકસ્માત એલર્ટ, નજીકની હોસ્પિટલ અને પ્રાથમિક સારવારમાં મદદ કરી શકું છું.",
+        "pa": "ਮੈਂ AAROHI AIਹਾਂ। ਮੈਂ ਹਾਦਸਾ ਅਲਰਟ, ਨੇੜਲਾ ਹਸਪਤਾਲ ਅਤੇ ਪਹਿਲੀ ਸਹਾਇਤਾ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।"
     }
 }
 
@@ -385,7 +385,7 @@ def gemini_chat(message, lang):
         }.get(lang, "English")
 
         system_prompt = f"""
-You are RAKSHA AI, an emergency road accident detection and rescue assistant.
+You are AAROHI AI, an emergency road accident detection and rescue assistant.
 Respond only in {language_name}.
 Keep the reply short, calm, and useful.
 Focus only on accident detection, hospital routing, emergency contacts, and first aid.
@@ -430,7 +430,7 @@ def home():
 def health():
     return jsonify({
         "status": "running",
-        "project": "RAKSHA AI",
+        "project": "AAROHI AI",
         "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     })
 
@@ -442,7 +442,7 @@ def dashboard():
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RAKSHA AI Dashboard</title>
+    <title>AAROHI AI Dashboard</title>
 
     <style>
         body {
@@ -572,7 +572,7 @@ def dashboard():
 <body>
 
 <header>
-    <h1 id="title">RAKSHA AI</h1>
+    <h1 id="title">AAROHI AI</h1>
     <p id="subtitle">Emergency Accident Detection and Rescue Alert System</p>
 </header>
 
@@ -645,7 +645,7 @@ def dashboard():
 </div>
 
 <footer id="footerText">
-    RAKSHA AI Hackathon Demo
+    AAROHI AI Hackathon Demo
 </footer>
 
 <script>
@@ -653,7 +653,7 @@ def dashboard():
 
     const text = {
         en: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI",
             subtitle: "Emergency Accident Detection and Rescue Alert System",
             accidentTitle: "Accident Alert",
             accidentText: "Simulate accident detection and send alerts to family, hospital and 108 demo contact.",
@@ -664,7 +664,7 @@ def dashboard():
             firstAidTitle: "First Aid Help",
             firstAidText: "Get quick first-aid guidance in your selected language.",
             firstAidBtn: "Show First Aid",
-            footerText: "RAKSHA AI Hackathon Demo",
+            footerText: "AAROHI AI Hackathon Demo",
             sending: "Sending emergency alerts...",
             alertSuccess: "Accident alert sent to emergency contacts, hospital and 108 demo contact.",
             alertFailed: "Alert could not be sent. Please check contact setup.",
@@ -673,7 +673,7 @@ def dashboard():
         },
 
         hi: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI",
             subtitle: "आपातकालीन दुर्घटना पहचान और बचाव अलर्ट सिस्टम",
             accidentTitle: "दुर्घटना अलर्ट",
             accidentText: "दुर्घटना पहचान का डेमो करके परिवार, अस्पताल और 108 डेमो संपर्क को अलर्ट भेजता है।",
@@ -684,7 +684,7 @@ def dashboard():
             firstAidTitle: "प्राथमिक चिकित्सा",
             firstAidText: "चुनी हुई भाषा में तुरंत प्राथमिक चिकित्सा सहायता पाएं।",
             firstAidBtn: "प्राथमिक चिकित्सा दिखाएं",
-            footerText: "RAKSHA AI हैकाथॉन डेमो",
+            footerText: "AAROHI AI हैकाथॉन डेमो",
             sending: "आपातकालीन अलर्ट भेजे जा रहे हैं...",
             alertSuccess: "दुर्घटना अलर्ट परिवार, अस्पताल और 108 डेमो संपर्क को भेज दिया गया।",
             alertFailed: "अलर्ट भेजा नहीं जा सका। संपर्क सेटअप जांचें।",
@@ -693,7 +693,7 @@ def dashboard():
         },
 
         ta: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI",
             subtitle: "அவசர விபத்து கண்டறிதல் மற்றும் மீட்பு எச்சரிக்கை அமைப்பு",
             accidentTitle: "விபத்து எச்சரிக்கை",
             accidentText: "விபத்து கண்டறிதலை சோதித்து குடும்பம், மருத்துவமனை மற்றும் 108 டெமோ தொடர்புக்கு எச்சரிக்கை அனுப்பும்.",
@@ -704,7 +704,7 @@ def dashboard():
             firstAidTitle: "முதலுதவி உதவி",
             firstAidText: "தேர்ந்தெடுத்த மொழியில் விரைவான முதலுதவி வழிகாட்டல்.",
             firstAidBtn: "முதலுதவி காட்டு",
-            footerText: "RAKSHA AI ஹாக்கத்தான் டெமோ",
+            footerText: "AAROHI AI ஹாக்கத்தான் டெமோ",
             sending: "அவசர எச்சரிக்கைகள் அனுப்பப்படுகின்றன...",
             alertSuccess: "விபத்து எச்சரிக்கை குடும்பம், மருத்துவமனை மற்றும் 108 டெமோ தொடர்புக்கு அனுப்பப்பட்டது.",
             alertFailed: "எச்சரிக்கை அனுப்ப முடியவில்லை. தொடர்பு அமைப்பை சரிபார்க்கவும்.",
@@ -713,7 +713,7 @@ def dashboard():
         },
 
         kn: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "ತುರ್ತು ಅಪಘಾತ ಪತ್ತೆ ಮತ್ತು ರಕ್ಷಣಾ ಎಚ್ಚರಿಕೆ ವ್ಯವಸ್ಥೆ",
             accidentTitle: "ಅಪಘಾತ ಎಚ್ಚರಿಕೆ",
             accidentText: "ಅಪಘಾತ ಪತ್ತೆಯನ್ನು ಪರೀಕ್ಷಿಸಿ ಕುಟುಂಬ, ಆಸ್ಪತ್ರೆ ಮತ್ತು 108 ಡೆಮೋ ಸಂಪರ್ಕಕ್ಕೆ ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸುತ್ತದೆ.",
@@ -724,7 +724,7 @@ def dashboard():
             firstAidTitle: "ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ",
             firstAidText: "ಆಯ್ಕೆ ಮಾಡಿದ ಭಾಷೆಯಲ್ಲಿ ತ್ವರಿತ ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ಮಾರ್ಗದರ್ಶನ ಪಡೆಯಿರಿ.",
             firstAidBtn: "ಪ್ರಥಮ ಚಿಕಿತ್ಸೆ ತೋರಿಸಿ",
-            footerText: "RAKSHA AI ಹ್ಯಾಕಥಾನ್ ಡೆಮೋ",
+            footerText: "AAROHI AI ಹ್ಯಾಕಥಾನ್ ಡೆಮೋ",
             sending: "ತುರ್ತು ಎಚ್ಚರಿಕೆಗಳನ್ನು ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
             alertSuccess: "ಅಪಘಾತ ಎಚ್ಚರಿಕೆ ಕುಟುಂಬ, ಆಸ್ಪತ್ರೆ ಮತ್ತು 108 ಡೆಮೋ ಸಂಪರ್ಕಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
             alertFailed: "ಎಚ್ಚರಿಕೆ ಕಳುಹಿಸಲಾಗಲಿಲ್ಲ. ಸಂಪರ್ಕ ವ್ಯವಸ್ಥೆಯನ್ನು ಪರಿಶೀಲಿಸಿ.",
@@ -733,7 +733,7 @@ def dashboard():
         },
 
         te: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "అత్యవసర ప్రమాద గుర్తింపు మరియు రక్షణ హెచ్చరిక వ్యవస్థ",
             accidentTitle: "ప్రమాద హెచ్చరిక",
             accidentText: "ప్రమాద గుర్తింపును పరీక్షించి కుటుంబం, ఆసుపత్రి మరియు 108 డెమో సంప్రదింపుకు హెచ్చరిక పంపుతుంది.",
@@ -744,7 +744,7 @@ def dashboard():
             firstAidTitle: "ప్రథమ చికిత్స",
             firstAidText: "ఎంచుకున్న భాషలో తక్షణ ప్రథమ చికిత్స సూచనలు పొందండి.",
             firstAidBtn: "ప్రథమ చికిత్స చూపించు",
-            footerText: "RAKSHA AI హ్యాకథాన్ డెమో",
+            footerText: "AAROHI AI హ్యాకథాన్ డెమో",
             sending: "అత్యవసర హెచ్చరికలు పంపబడుతున్నాయి...",
             alertSuccess: "ప్రమాద హెచ్చరిక కుటుంబం, ఆసుపత్రి మరియు 108 డెమో సంప్రదింపుకు పంపబడింది.",
             alertFailed: "హెచ్చరిక పంపలేకపోయాం. సంప్రదింపు సెటప్ తనిఖీ చేయండి.",
@@ -753,7 +753,7 @@ def dashboard():
         },
 
         ml: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "അടിയന്തര അപകട കണ്ടെത്തൽയും രക്ഷാ അലർട്ട് സംവിധാനവും",
             accidentTitle: "അപകട അലർട്ട്",
             accidentText: "അപകട കണ്ടെത്തൽ പരീക്ഷിച്ച് കുടുംബം, ആശുപത്രി, 108 ഡെമോ കോൺടാക്ട് എന്നിവർക്കു അലർട്ട് അയയ്ക്കുന്നു.",
@@ -764,7 +764,7 @@ def dashboard():
             firstAidTitle: "പ്രഥമ ശുശ്രൂഷ",
             firstAidText: "തിരഞ്ഞെടുത്ത ഭാഷയിൽ വേഗത്തിലുള്ള പ്രഥമ ശുശ്രൂഷ മാർഗ്ഗനിർദ്ദേശം നേടുക.",
             firstAidBtn: "പ്രഥമ ശുശ്രൂഷ കാണിക്കുക",
-            footerText: "RAKSHA AI ഹാക്കത്തോൺ ഡെമോ",
+            footerText: "AAROHI AI ഹാക്കത്തോൺ ഡെമോ",
             sending: "അടിയന്തര അലർട്ടുകൾ അയയ്ക്കുന്നു...",
             alertSuccess: "അപകട അലർട്ട് കുടുംബം, ആശുപത്രി, 108 ഡെമോ കോൺടാക്ട് എന്നിവർക്കു അയച്ചു.",
             alertFailed: "അലർട്ട് അയയ്ക്കാൻ കഴിഞ്ഞില്ല. കോൺടാക്ട് സജ്ജീകരണം പരിശോധിക്കുക.",
@@ -773,7 +773,7 @@ def dashboard():
         },
 
         mr: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "आपत्कालीन अपघात ओळख आणि बचाव अलर्ट प्रणाली",
             accidentTitle: "अपघात अलर्ट",
             accidentText: "अपघात ओळख डेमो करून कुटुंब, रुग्णालय आणि 108 डेमो संपर्काला अलर्ट पाठवते.",
@@ -784,7 +784,7 @@ def dashboard():
             firstAidTitle: "प्राथमिक उपचार",
             firstAidText: "निवडलेल्या भाषेत त्वरित प्राथमिक उपचार मार्गदर्शन मिळवा.",
             firstAidBtn: "प्राथमिक उपचार दाखवा",
-            footerText: "RAKSHA AI हॅकाथॉन डेमो",
+            footerText: "AAROHI AI हॅकाथॉन डेमो",
             sending: "आपत्कालीन अलर्ट पाठवले जात आहेत...",
             alertSuccess: "अपघात अलर्ट कुटुंब, रुग्णालय आणि 108 डेमो संपर्काला पाठवला.",
             alertFailed: "अलर्ट पाठवता आला नाही. संपर्क सेटअप तपासा.",
@@ -793,7 +793,7 @@ def dashboard():
         },
 
         bn: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "জরুরি দুর্ঘটনা শনাক্তকরণ ও উদ্ধার সতর্কতা ব্যবস্থা",
             accidentTitle: "দুর্ঘটনা সতর্কতা",
             accidentText: "দুর্ঘটনা শনাক্তকরণের ডেমো করে পরিবার, হাসপাতাল এবং 108 ডেমো কন্ট্যাক্টে সতর্কতা পাঠায়।",
@@ -804,7 +804,7 @@ def dashboard():
             firstAidTitle: "প্রাথমিক চিকিৎসা",
             firstAidText: "নির্বাচিত ভাষায় দ্রুত প্রাথমিক চিকিৎসার নির্দেশনা পান।",
             firstAidBtn: "প্রাথমিক চিকিৎসা দেখান",
-            footerText: "RAKSHA AI হ্যাকাথন ডেমো",
+            footerText: "AAROHI AI হ্যাকাথন ডেমো",
             sending: "জরুরি সতর্কতা পাঠানো হচ্ছে...",
             alertSuccess: "দুর্ঘটনা সতর্কতা পরিবার, হাসপাতাল এবং 108 ডেমো কন্ট্যাক্টে পাঠানো হয়েছে।",
             alertFailed: "সতর্কতা পাঠানো যায়নি। কন্ট্যাক্ট সেটআপ পরীক্ষা করুন।",
@@ -813,7 +813,7 @@ def dashboard():
         },
 
         gu: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "ઇમરજન્સી અકસ્માત ઓળખ અને બચાવ એલર્ટ સિસ્ટમ",
             accidentTitle: "અકસ્મિક એલર્ટ",
             accidentText: "અકસ્મિક ઓળખનો ડેમો કરીને પરિવાર, હોસ્પિટલ અને 108 ડેમો સંપર્કને એલર્ટ મોકલે છે.",
@@ -824,7 +824,7 @@ def dashboard():
             firstAidTitle: "પ્રાથમિક સારવાર",
             firstAidText: "પસંદ કરેલી ભાષામાં ઝડપી પ્રાથમિક સારવાર માર્ગદર્શન મેળવો.",
             firstAidBtn: "પ્રાથમિક સારવાર બતાવો",
-            footerText: "RAKSHA AI હેકાથોન ડેમો",
+            footerText: "AAROHI AI હેકાથોન ડેમો",
             sending: "ઇમરજન્સી એલર્ટ મોકલાઈ રહ્યા છે...",
             alertSuccess: "અકસ્મિક એલર્ટ પરિવાર, હોસ્પિટલ અને 108 ડેમો સંપર્કને મોકલાયું.",
             alertFailed: "એલર્ટ મોકલી શકાયું નથી. સંપર્ક સેટઅપ તપાસો.",
@@ -833,7 +833,7 @@ def dashboard():
         },
 
         pa: {
-            title: "RAKSHA AI",
+            title: "AAROHI AI ",
             subtitle: "ਐਮਰਜੈਂਸੀ ਹਾਦਸਾ ਪਛਾਣ ਅਤੇ ਬਚਾਅ ਅਲਰਟ ਸਿਸਟਮ",
             accidentTitle: "ਹਾਦਸਾ ਅਲਰਟ",
             accidentText: "ਹਾਦਸਾ ਪਛਾਣ ਦਾ ਡੈਮੋ ਕਰਕੇ ਪਰਿਵਾਰ, ਹਸਪਤਾਲ ਅਤੇ 108 ਡੈਮੋ ਸੰਪਰਕ ਨੂੰ ਅਲਰਟ ਭੇਜਦਾ ਹੈ।",
@@ -844,7 +844,7 @@ def dashboard():
             firstAidTitle: "ਪਹਿਲੀ ਸਹਾਇਤਾ",
             firstAidText: "ਚੁਣੀ ਭਾਸ਼ਾ ਵਿੱਚ ਤੁਰੰਤ ਪਹਿਲੀ ਸਹਾਇਤਾ ਮਾਰਗਦਰਸ਼ਨ ਲਵੋ।",
             firstAidBtn: "ਪਹਿਲੀ ਸਹਾਇਤਾ ਦਿਖਾਓ",
-            footerText: "RAKSHA AI ਹੈਕਾਥਾਨ ਡੈਮੋ",
+            footerText: "AAROHI AIਹੈਕਾਥਾਨ ਡੈਮੋ",
             sending: "ਐਮਰਜੈਂਸੀ ਅਲਰਟ ਭੇਜੇ ਜਾ ਰਹੇ ਹਨ...",
             alertSuccess: "ਹਾਦਸਾ ਅਲਰਟ ਪਰਿਵਾਰ, ਹਸਪਤਾਲ ਅਤੇ 108 ਡੈਮੋ ਸੰਪਰਕ ਨੂੰ ਭੇਜਿਆ ਗਿਆ।",
             alertFailed: "ਅਲਰਟ ਨਹੀਂ ਭੇਜਿਆ ਜਾ ਸਕਿਆ। ਸੰਪਰਕ ਸੈਟਅਪ ਚੈੱਕ ਕਰੋ।",
@@ -998,7 +998,7 @@ def dashboard():
 @app.route("/api/status")
 def api_status():
     return jsonify({
-        "message": "RAKSHA AI backend running successfully",
+        "message": "AAROHI AI backend running successfully",
         "env_loaded": {
             "GEMINI_API_KEY": bool(GEMINI_API_KEY),
             "TWILIO_ACCOUNT_SID": bool(TWILIO_ACCOUNT_SID),
